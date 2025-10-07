@@ -102,3 +102,46 @@ export const getProduct = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Failed to get product" });
   }
 };
+
+// - `PATCH /:id` - Update product (seller only)
+export const updateProduct = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const parser = updateProductSchema.safeParse(req.body);
+
+    if (!mongoose.Types.ObjectId.isValid(id as string))
+      return res.status(400).json({ message: "Invalid id." });
+
+    if (!parser.success)
+      return res.status(400).json({
+        message: "Invalid data.",
+        error: JSON.parse(parser.error.message).map(
+          (m: any) => `${m.path}: ${m.message}`
+        ),
+      });
+
+    const oldData = await Product.findById(id);
+    if (!oldData)
+      return res
+        .status(404)
+        .json({ message: "Product not found.", product: null });
+
+    const data = {
+      title: parser.data.title ?? oldData.title,
+      description: parser.data.description ?? oldData.description,
+      price: parser.data.price ?? oldData.price,
+      stock: parser.data.stock ?? oldData.stock,
+    };
+
+    const product = await Product.findByIdAndUpdate(
+      id,
+      { ...data },
+      { new: true }
+    );
+
+    return res.status(200).json({ message: "Product updated.", product });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to update product" });
+  }
+};
+

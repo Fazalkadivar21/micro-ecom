@@ -10,8 +10,8 @@ app.use(express.json());
 app.use(express.urlencoded());
 app.use(cookieParser());
 
-// import { userRouter } from "./route/user.route";
-// app.use("/api/auth", userRouter);
+import { productRouter } from "./routes/product.route";
+app.use("/api/product", productRouter);
 
 app.get("/", (req, res) => {
   res.send("One piece is Real!");

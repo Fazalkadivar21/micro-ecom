@@ -47,3 +47,40 @@ export const createProduct = async (req: Request, res: Response) => {
   }
 };
 
+// - `GET /` - List all products
+export const getProducts = async (req: Request, res: Response) => {
+  try {
+    const { q, minprice, maxprice, skip } = req.query;
+
+    const filter: Filter = {};
+
+    if (q && typeof q === "string") {
+      filter.$text = { $search: q };
+    }
+
+    if (minprice) {
+      filter["price.amount"] = {
+        ...filter["price.amount"],
+        $gte: Number(minprice),
+      };
+    }
+
+    if (maxprice) {
+      filter["price.amount"] = {
+        ...filter["price.amount"],
+        $lte: Number(maxprice),
+      };
+    }
+
+    const products = await Product.find(filter).skip(Number(skip) || 0).limit(10);;
+    if (!products.length)
+      return res
+        .status(200)
+        .json({ message: "No products found", products: [] });
+
+    return res.status(200).json({ message: "products found", products });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to get all products" });
+  }
+};
+

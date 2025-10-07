@@ -24,10 +24,17 @@ export const userRegisterSchema = z.object({
 })
 
 export const userLoginSchema = z.object({
-    email: z.string().email("Invalid email address"),
-    username: z.string().min(3, "Username must be at least 3 characters"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-})
+  email: z.string().email("Invalid email address").optional(),
+  username: z.string().min(3, "Username must be at least 3 characters").optional(),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+}).refine(
+  (data) => data.email || data.username,
+  {
+    message: "Either email or username is required",
+    path: ["email"],
+  }
+);
+
 
 export const createAddressSchema = z.object({
     street: z.string().min(1, "Street is required"),

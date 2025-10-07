@@ -15,7 +15,9 @@ export const registerUser = async (req: Request, res: Response) => {
     if (!parser.success) {
       return res.status(400).json({
         message: "Invalid data",
-        errors: parser.error,
+        error: JSON.parse(parser.error.message).map(
+          (m: any) => `${m.path}: ${m.message}`
+        ),
       });
     }
 
@@ -36,7 +38,7 @@ export const registerUser = async (req: Request, res: Response) => {
       role: parser.data.role,
     });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, {
+    const token = jwt.sign({ id: user._id,role: user.role }, process.env.JWT_SECRET!, {
       expiresIn: "7d",
     });
 
@@ -54,9 +56,12 @@ export const login = async (req: Request, res: Response) => {
   try {
     const parser = userLoginSchema.safeParse(req.body);
     if (!parser.success) {
-      return res
-        .status(400)
-        .json({ message: "Invalid data", error: parser.error });
+      return res.status(400).json({
+        message: "Invalid data",
+        error: JSON.parse(parser.error.message).map(
+          (m: any) => `${m.path}: ${m.message}`
+        ),
+      });
     }
 
     const user = await User.findOne({
@@ -70,7 +75,7 @@ export const login = async (req: Request, res: Response) => {
         .status(403)
         .json({ message: "Invalid email/username or password" });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, {
+    const token = jwt.sign({ id: user._id,role:user.role }, process.env.JWT_SECRET!, {
       expiresIn: "7d",
     });
 
@@ -136,7 +141,12 @@ export const addAddress = async (req: Request, res: Response) => {
     if (!parser.success)
       return res
         .status(400)
-        .json({ message: "invalid data", error: parser.error });
+        .json({
+          message: "invalid data",
+          error: JSON.parse(parser.error.message).map(
+            (m: any) => `${m.path}: ${m.message}`
+          ),
+        });
 
     const user = await User.findByIdAndUpdate(
       req.userId,

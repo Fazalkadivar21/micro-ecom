@@ -164,4 +164,21 @@ export const deleteProduct = async (req: Request, res: Response) => {
   }
 };
 
+// - `GET /seller` - Seller's products
+export const getSellerProduct = async (req: Request, res: Response) => {
+  try {
+    const products = await Product.find({
+      seller: req.sellerId,
+    });
+
+    if (!products.length)
+      return res
+        .status(200)
+        .json({ message: "No products found", products: [] });
+
+    return res.status(200).json({ message: "products found", products });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to get products" });
+  }
+};
 
